@@ -151,7 +151,7 @@ public class Neo4jApp implements AutoCloseable {
                     this.insertProceedings();
                     break;
                 case "review-convert":
-                    this.generateRandomReviews();
+                    this.transformReviewEdgesIntoNodes();
                     break;
                 case "review-edges":
                     this.generateRandomReviews();
@@ -583,9 +583,30 @@ public class Neo4jApp implements AutoCloseable {
 
     private void generateRandomOrganizations() {
         try (Session session = driver.session()) {
+            String [] universities = new String [] {"UAL", "UCA", "UCO", "UGR", "UNIOVI", "EHU", "UPV", "MU", "UEM",
+                    "UPC", "UAB", "UOC", "UPF", "UNED"};
+            String [] companies = new String [] {"BSC", "Atos", "IBM", "GAES", "Ikerlan", "Google", "Microsoft",
+                    "Asus", "Apple"};
             session.writeTransaction(tx ->
-                    tx.run("")
+                    tx.run("UNWIND $universities AS uni " +
+                            "MERGE (:University {name: uni})",
+                            parameters("universities", universities))
             );
+            session.writeTransaction(tx ->
+                    tx.run("UNWIND $companies AS company " +
+                            "MERGE (:Company {name: company})",
+                            parameters("companies", companies))
+            );
+            for (int i = 0; i < 30000; i++) {
+                session.writeTransaction(tx ->
+                        tx.run("MATCH (a:Author) WITH a AS author SKIP toInteger(rand() * 69000) LIMIT 1 " +
+                                "MATCH (affiliation) WHERE affiliation:Company OR affiliation:University " +
+                                "WITH author, affiliation SKIP toInteger(rand() * 23) LIMIT 1 " +
+                                "MERGE (author)<-[:MEMBER]-(affiliation)")
+                );
+                System.out.println("Relationship between keyword and article created. " + (30000 - i) + " to go.");
+            }
+
         }
     }
 
@@ -654,7 +675,7 @@ public class Neo4jApp implements AutoCloseable {
                             "ORDER BY impactFactor DESC LIMIT 100")
             );
             System.out.println("Showing at most 100 results");
-            result.stream().forEach(r -> System.out.println(String.format("%s: %d", r.get(0).asString(), r.get(1).asInt())));
+            result.stream().forEach(r -> System.out.println(String.format("%s: %.4f", r.get(0).asString(), r.get(1).asDouble())));
         }
     }
 
@@ -668,7 +689,7 @@ public class Neo4jApp implements AutoCloseable {
                             "RETURN j.name, toFloat(SUM(citations)) / toFloat(COUNT(a)) AS impactFactor",
                             parameters("name", name))
             ).single();
-            System.out.println(String.format("%s: %d", record.get(0).asString(), record.get(1).asInt()));
+            System.out.println(String.format("%s: %.4f", record.get(0).asString(), record.get(1).asDouble()));
         }
     }
 
