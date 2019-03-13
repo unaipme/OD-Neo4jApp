@@ -32,40 +32,51 @@ public class Neo4jApp implements AutoCloseable {
 
 
     public Neo4jApp() {
-        this.driver = GraphDatabase.driver("bolt://localhost:7687");
+        this.driver = GraphDatabase.driver("bolt://localhost:7687",
+                Config.build().withLogging(Logging.none()).toConfig());
     }
 
     public static void main(String [] args) throws Exception {
-        if (args.length == 0) throw new Exception("At least one argument required: { populate | query }");
-        try (Neo4jApp app = new Neo4jApp()) {
-            switch (args[0].toLowerCase()) {
-                case "populate":
-                    app.populate(args);
-                    break;
-                case "query":
-                    app.query(args);
-                    break;
+        if (args.length == 0) {
+            System.out.println("\u001B[34mAvailable options:\u001B[0m\n");
+            System.out.println(String.format("\u001B[36m%s\t\u001B[34m%s\u001B[0m", "populate", "Different options to populate the database with data (requires the CSV files)"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "query", "Show the options of the different queries"));
+        } else {
+            try (Neo4jApp app = new Neo4jApp()) {
+                switch (args[0].toLowerCase()) {
+                    case "populate":
+                        app.populate(args);
+                        break;
+                    case "query":
+                        app.query(args);
+                        break;
+                }
             }
         }
     }
 
     private void populate(String [] args) throws Exception {
         if (args.length == 1) {
-            System.out.println("Available options:\n");
-            System.out.println(String.format("\u001B[36m%s\t\t\t\t\t\u001B[34m%s\u001B[0m", "all", "Inserts all data related to articles and inproceedings"));
+            System.out.println("\u001B[34mAvailable options:\u001B[0m\n");
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "all", "Inserts all data related to articles and inproceedings"));
             System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "all-articles", "Inserts all data related to articles"));
-            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "all-inproc", "Inserts all data related to inproceedings"));
-            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "articles", "Inserts articles and creates relationships with the journal volume"));
-            System.out.println(String.format("\u001B[36m%s\t\t\t\t\u001B[34m%s\u001B[0m", "authors", "Inserts article authors"));
-            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "citations", "Generates citation relationships from the file"));
-            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "conferences", "Inserts all data related to conferences"));
-            System.out.println(String.format("\u001B[36m%s\t\t\t\t\u001B[34m%s\u001B[0m", "inproc", "Inserts all inproceedings articles and creates relationships with the proceedings"));
-            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "journals", "Inserts all data related to journals"));
-            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "keywords", "Creates keywords and randomly generates relationships"));
-            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "proceedings", "Inserts all proceedings and creates the relationship with its conference"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "all-inproc", "Inserts all data related to inproceedings"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "articles", "Inserts articles and creates relationships with the journal volume"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "authors", "Inserts article authors"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "citations", "Generates citation relationships from the file"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "conferences", "Inserts all data related to conferences"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "inproc", "Inserts all inproceedings articles and creates relationships with the proceedings"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "journals", "Inserts all data related to journals"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "keywords", "Creates keywords and randomly generates relationships"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "model1", "Generate data according to the first model"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "model2", "Generate data according to the evolved model"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "proceedings", "Inserts all proceedings and creates the relationship with its conference"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "review-convert", "Converts review edges into review nodes according to the evolved model"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "review-edges", "Generates reviews as edges from authors to articles"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "review-nodes", "Generates reviews as nodes between reviewer authors and articles"));
             System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "rnd-citations", "Generates randomly citation relationships"));
-            System.out.println(String.format("\u001B[36m%s\t\t\t\t\u001B[34m%s\u001B[0m", "volumes", "Inserts all volumes and their journals"));
-            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "written-by", "Creates the relationships between authors and journal articles"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "volumes", "Inserts all volumes and their journals"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "written-by", "Creates the relationships between authors and journal articles"));
             System.out.println(String.format("\u001B[36m%s\t\u001B[34m%s\u001B[0m", "written-by-inproc", "Creates the relationships between authors and inproceedings articles"));
         } else {
             switch (args[1].toLowerCase()) {
@@ -139,7 +150,13 @@ public class Neo4jApp implements AutoCloseable {
                     this.insertConferences();
                     this.insertProceedings();
                     break;
-                case "reviews":
+                case "review-convert":
+                    this.generateRandomReviews();
+                    break;
+                case "review-edges":
+                    this.generateRandomReviews();
+                    break;
+                case "review-nodes":
                     this.generateRandomReviews();
                     break;
                 case "rnd-citations":
@@ -162,10 +179,11 @@ public class Neo4jApp implements AutoCloseable {
 
     private void query(String [] args) throws Exception {
         if (args.length == 1) {
-            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "community", "Find the community of specified conference or show all communities"));
-            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "hindex", "Calculate hindex for specified author or show to 100 highest hindex-es"));
+            System.out.println("\u001B[34mAvailable options:\u001B[0m\n");
+            System.out.println(String.format("\u001B[36m%s\t\u001B[34m%s\u001B[0m", "community", "Find the community of specified conference or show all communities"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "h-index", "Calculate hindex for specified author or show to 100 highest hindex-es"));
             System.out.println(String.format("\u001B[36m%s\t\u001B[34m%s\u001B[0m", "impact-factor", "Calculate impact factor for specified journal or show 100 highest impact factors"));
-            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "most-cited", "Find the most cited articles of a specified conference or of all of them"));
+            System.out.println(String.format("\u001B[36m%s\t\u001B[34m%s\u001B[0m", "most-cited", "Find the most cited articles of a specified conference or of all of them"));
         } else {
             switch (args[1].toLowerCase()) {
                 case "community":
@@ -175,7 +193,7 @@ public class Neo4jApp implements AutoCloseable {
                         this.community();
                     }
                     break;
-                case "hindex":
+                case "h-index":
                     if (args.length == 3) {
                         this.hIndex(args[2]);
                     } else {
@@ -564,7 +582,11 @@ public class Neo4jApp implements AutoCloseable {
     }
 
     private void generateRandomOrganizations() {
-
+        try (Session session = driver.session()) {
+            session.writeTransaction(tx ->
+                    tx.run("")
+            );
+        }
     }
 
     private void hIndex() {
