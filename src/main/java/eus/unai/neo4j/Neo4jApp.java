@@ -52,21 +52,21 @@ public class Neo4jApp implements AutoCloseable {
     private void populate(String [] args) throws Exception {
         if (args.length == 1) {
             System.out.println("Available options:\n");
-            System.out.println(String.format("%s\t%s", "all", "Inserts all data related to articles and inproceedings"));
-            System.out.println(String.format("%s\t%s", "all-articles", "Inserts all data related to articles"));
-            System.out.println(String.format("%s\t%s", "all-inproc", "Inserts all data related to inproceedings"));
-            System.out.println(String.format("%s\t%s", "articles", "Inserts articles and creates relationships with the journal volume"));
-            System.out.println(String.format("%s\t%s", "authors", "Inserts article authors"));
-            System.out.println(String.format("%s\t%s", "citations", "Generates citation relationships from the file"));
-            System.out.println(String.format("%s\t%s", "conferences", "Inserts all data related to conferences"));
-            System.out.println(String.format("%s\t%s", "inproc", "Inserts all inproceedings articles and creates relationships with the proceedings"));
-            System.out.println(String.format("%s\t%s", "journals", "Inserts all data related to journals"));
-            System.out.println(String.format("%s\t%s", "keywords", "Creates keywords and randomly generates relationships"));
-            System.out.println(String.format("%s\t%s", "proceedings", "Inserts all proceedings and creates the relationship with its conference"));
-            System.out.println(String.format("%s\t%s", "rnd-citations", "Generates randomly citation relationships"));
-            System.out.println(String.format("%s\t%s", "volumes", "Inserts all volumes and their journals"));
-            System.out.println(String.format("%s\t%s", "written-by", "Creates the relationships between authors and journal articles"));
-            System.out.println(String.format("%s\t%s", "written-by-inproc", "Creates the relationships between authors and inproceedings articles"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\t\t\u001B[34m%s\u001B[0m", "all", "Inserts all data related to articles and inproceedings"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "all-articles", "Inserts all data related to articles"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "all-inproc", "Inserts all data related to inproceedings"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "articles", "Inserts articles and creates relationships with the journal volume"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\t\u001B[34m%s\u001B[0m", "authors", "Inserts article authors"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "citations", "Generates citation relationships from the file"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "conferences", "Inserts all data related to conferences"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\t\u001B[34m%s\u001B[0m", "inproc", "Inserts all inproceedings articles and creates relationships with the proceedings"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "journals", "Inserts all data related to journals"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "keywords", "Creates keywords and randomly generates relationships"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "proceedings", "Inserts all proceedings and creates the relationship with its conference"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "rnd-citations", "Generates randomly citation relationships"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\t\u001B[34m%s\u001B[0m", "volumes", "Inserts all volumes and their journals"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "written-by", "Creates the relationships between authors and journal articles"));
+            System.out.println(String.format("\u001B[36m%s\t\u001B[34m%s\u001B[0m", "written-by-inproc", "Creates the relationships between authors and inproceedings articles"));
         } else {
             switch (args[1].toLowerCase()) {
                 case "all":
@@ -107,6 +107,33 @@ public class Neo4jApp implements AutoCloseable {
                 case "keywords":
                     this.generateRandomKeywords();
                     break;
+                case "model1":
+                    this.insertConferences();
+                    this.insertJournals();
+                    this.insertProceedings();
+                    this.insertVolumes();
+                    this.insertInProceedingsAuthors();
+                    this.insertAuthors();
+                    this.insertInProceedingsArticles();
+                    this.insertArticles();
+                    this.generateRandomKeywords();
+                    this.generateRandomReviewEdges();
+                    this.generateRandomCitations();
+                    break;
+                case "model2":
+                    this.insertConferences();
+                    this.insertJournals();
+                    this.insertProceedings();
+                    this.insertVolumes();
+                    this.insertInProceedingsAuthors();
+                    this.insertAuthors();
+                    this.insertInProceedingsArticles();
+                    this.insertArticles();
+                    this.generateRandomKeywords();
+                    this.generateRandomReviews();
+                    this.generateRandomCitations();
+                    this.generateRandomOrganizations();
+                    break;
                 case "proceedings":
                     System.out.println("Conferences must be also inserted in this mode");
                     this.insertConferences();
@@ -135,10 +162,10 @@ public class Neo4jApp implements AutoCloseable {
 
     private void query(String [] args) throws Exception {
         if (args.length == 1) {
-            System.out.println(String.format("%s\t%s", "community", "Find the community of specified conference or show all communities"));
-            System.out.println(String.format("%s\t%s", "hindex", "Calculate hindex for specified author or show to 100 highest hindex-es"));
-            System.out.println(String.format("%s\t%s", "impact-factor", "Calculate impact factor for specified journal or show 100 highest impact factors"));
-            System.out.println(String.format("%s\t%s", "most-cited", "Find the most cited articles of a specified conference or of all of them"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "community", "Find the community of specified conference or show all communities"));
+            System.out.println(String.format("\u001B[36m%s\t\t\t\u001B[34m%s\u001B[0m", "hindex", "Calculate hindex for specified author or show to 100 highest hindex-es"));
+            System.out.println(String.format("\u001B[36m%s\t\u001B[34m%s\u001B[0m", "impact-factor", "Calculate impact factor for specified journal or show 100 highest impact factors"));
+            System.out.println(String.format("\u001B[36m%s\t\t\u001B[34m%s\u001B[0m", "most-cited", "Find the most cited articles of a specified conference or of all of them"));
         } else {
             switch (args[1].toLowerCase()) {
                 case "community":
@@ -480,7 +507,7 @@ public class Neo4jApp implements AutoCloseable {
                 session.writeTransaction(tx ->
                         tx.run("MATCH (a:Article) WITH a AS article SKIP toInt(round(rand() * 69000)) LIMIT 1 " +
                                 "MATCH (k:Keyword) WITH article, k SKIP toInt(round(rand() * 7)) LIMIT 1 " +
-                                "MERGE (k)<-[:RELATED_TO]-(article)")
+                                "MERGE (k)-[:RELATES]->(article)")
                 );
                 System.out.println("Relationship between keyword and article created. " + (30000 - i) + " to go.");
             }
@@ -488,21 +515,56 @@ public class Neo4jApp implements AutoCloseable {
         System.out.println("Done");
     }
 
-    private void generateRandomReviews() {
+    private void generateRandomReviewEdges() {
         try (Session session = driver.session()) {
             for (int i = 0; i < 10000; i++) {
                 StatementResult result = session.writeTransaction(tx ->
-                        tx.run("MATCH (j:Journal)-[:EDITION]->(:Volume)-[:PUBLISHED]->(a:Article)" +
-                                "WHERE NOT (a)<-[:ABOUT]-(:Review) WITH j, a SKIP toInt(rand() * 49000) LIMIT 1 " +
+                        tx.run("MATCH (j:Journal)-[:EDITION]->(:Volume)-[:PUBLISHED]->(a:Article) " +
+                                "WITH j, a SKIP toInt(rand() * 49000) LIMIT 1 " +
                                 "MATCH (auth:Author) WHERE NOT (a)-[:WRITTEN_BY]->(auth) " +
                                 "WITH j, a, auth SKIP toInt(rand() * 115000) LIMIT 5 " +
-                                "WITH a, COLLECT(auth)[..j.numberReviewers] AS authors " +
-                                "FOREACH (author IN authors | MERGE (author)-[:WRITES]->(:Review)-[:ABOUT]->(a))")
+                                "FOREACH (author IN authors | MERGE (author)-[:REVIEWS]->(a))")
                 );
                 System.out.println("New review created. " + (30000 - i) +  " to go.");
             }
         }
         System.out.println("Done");
+    }
+
+    private void generateRandomReviews() {
+        try (Session session = driver.session()) {
+            Random random = new Random();
+            String [] grades = new String [] {"rejected", "accepted", "accepted", "accepted", "accepted"};
+            for (int i = 0; i < 10000; i++) {
+                StatementResult result = session.writeTransaction(tx ->
+                        tx.run("MATCH (j:Journal)-[:EDITION]->(:Volume)-[:PUBLISHED]->(a:Article) " +
+                                "WHERE NOT (a)<-[:ABOUT]-(:Review) WITH j, a SKIP toInt(rand() * 49000) LIMIT 1 " +
+                                "MATCH (auth:Author) WHERE NOT (a)-[:WRITTEN_BY]->(auth) " +
+                                "WITH j, a, auth SKIP toInt(rand() * 115000) LIMIT 5 " +
+                                "WITH a, COLLECT(auth)[..j.numberReviewers] AS authors " +
+                                "FOREACH (author IN authors | MERGE (author)-[:WRITES]->(:Review {grade: $grade})-[:ABOUT]->(a))",
+                                parameters("grade", grades[random.nextInt(grades.length)]))
+                );
+                System.out.println("New review created. " + (30000 - i) +  " to go.");
+            }
+        }
+        System.out.println("Done");
+    }
+
+    private void transformReviewEdgesIntoNodes() {
+        try (Session session = driver.session()) {
+            session.writeTransaction(tx ->
+                    tx.run("MATCH (author:Author)-[r:REVIEWS]->(article:Article) " +
+                            "WITH author, article, " +
+                            "['rejected', 'accepted', 'accepted', 'accepted', 'accepted'][toInteger(rand() * 5)] AS grade" +
+                            "MERGE (author)-[:WRITES]->(:Review {grade: grade})-[:ABOUT]->(a) " +
+                            "DETACH DELETE r")
+            );
+        }
+    }
+
+    private void generateRandomOrganizations() {
+
     }
 
     private void hIndex() {
