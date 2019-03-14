@@ -32,8 +32,8 @@ public class Neo4jApp implements AutoCloseable {
 
 
     public Neo4jApp() {
-        this.driver = GraphDatabase.driver("bolt://localhost:7687",
-                Config.build().withLogging(Logging.none()).toConfig());
+        this.driver = GraphDatabase.driver("bolt://localhost:7687"/*,
+                Config.build().withLogging(Logging.none()).toConfig()*/);
     }
 
     public static void main(String [] args) throws Exception {
@@ -173,6 +173,8 @@ public class Neo4jApp implements AutoCloseable {
                 case "written-by-inproc":
                     this.mergeProceedingsAuthorAndArticles();
                     break;
+                default:
+                    System.out.println("The option you chose does not exist");
             }
         }
     }
@@ -308,12 +310,13 @@ public class Neo4jApp implements AutoCloseable {
                     Integer volume = Integer.parseInt(columns[31]);
                     String article = columns[27];
                     String key = columns[16];
+                    Integer year = Integer.parseInt(columns[32]);
                     StatementResult result = session.writeTransaction(tx ->
                             tx.run("MATCH (v:Volume {number: $volume})<-[:EDITION]-(j:Journal {name: $journal}) " +
                                     "MERGE (a:Article {title: $article})<-[:PUBLISHED]-(v) " +
-                                    "ON CREATE SET a.key = $key",
+                                    "ON CREATE SET a.key = $key, a.year = $year",
                                     parameters("volume", volume, "journal", journal,
-                                            "article", article, "key", key))
+                                            "article", article, "key", key, "year", year))
                     );
                     System.out.println("Article '" + article + "' created");
                 } catch (Exception e) {
@@ -438,11 +441,12 @@ public class Neo4jApp implements AutoCloseable {
                 String crossref = values[7];
                 String title = values[23];
                 String key = values[13];
+                Integer year = Integer.parseInt(values[27]);
                 StatementResult result = session.writeTransaction(tx ->
                         tx.run("MATCH (p:Proceedings {key: $crossref}) " +
                                         "MERGE (a:Article {title: $title})<-[:PUBLISHED]-(p) " +
-                                        "ON CREATE SET a.key = $key",
-                                parameters("crossref", crossref, "title", title, "key", key))
+                                        "ON CREATE SET a.key = $key, a.year = $year",
+                                parameters("crossref", crossref, "title", title, "key", key, "year", year))
                 );
                 System.out.println("Article '" + title + "' introduced.");
             });
@@ -668,7 +672,7 @@ public class Neo4jApp implements AutoCloseable {
         try (Session session = driver.session()) {
             StatementResult result = session.writeTransaction(tx ->
                     tx.run("MATCH (j:Journal)-[:EDITION]->(v:Volume)-[:PUBLISHED]->(a:Article) " +
-                            "OPTIONAL MATCH (a)-[c:CITED_BY]->(:Article) " +
+                            "OPTIONAL MATCH (a)-[c:CITED_BY]->(:Article {year: date().year}) " +
                             "WHERE v.year IN [date().year - 1, date().year - 2] " +
                             "WITH j, a, COUNT(c) AS citations " +
                             "RETURN j.name, toFloat(SUM(citations)) / toFloat(COUNT(a)) AS impactFactor " +
@@ -683,7 +687,7 @@ public class Neo4jApp implements AutoCloseable {
         try (Session session = driver.session()) {
             Record record = session.writeTransaction(tx ->
                     tx.run("MATCH (j:Journal {name: $name})-[:EDITION]->(v:Volume)-[:PUBLISHED]->(a:Article) " +
-                            "OPTIONAL MATCH (a)-[c:CITED_BY]->(:Article) " +
+                            "OPTIONAL MATCH (a)-[c:CITED_BY]->(:Article {year: date().year}) " +
                             "WHERE v.year IN [date().year - 1, date().year - 2] " +
                             "WITH j, a, COUNT(c) AS citations " +
                             "RETURN j.name, toFloat(SUM(citations)) / toFloat(COUNT(a)) AS impactFactor",
